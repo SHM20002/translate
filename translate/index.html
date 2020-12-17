@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>翻译</title>
+<!--视口/视觉窗口标签:meta, 宽度=设备宽度，初始化缩放比例1， 是否允许用户缩放页面:no -->
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+<!-- 扩展对低版本IE支持,开启IE兼容模式-->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Bootstrap核心css -->
+<link rel="stylesheet" type="text/css" href="bootstrap3/css/bootstrap.css">
+<!-- 字体图标 -->
+<link rel="stylesheet" type="text/css" href="bootstrap3/font-awesome-4.7.0/css/font-awesome.css"/>
+
+<style type="text/css">
+	.myMd{
+		padding: 0;
+	}
+</style>
+</head>
+<body>
+	<div class="container" id="app">
+		<!-- 头部 -->
+		 <div class="row">
+			 <div class="dropdown">
+			   <!-- Single button -->
+			   <div class="btn-group">
+			     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			      {{ btn_group }} <span class="caret"></span>
+			     </button>
+			     
+			     <button type="button" class="btn btn-danger dropdown-toggle" @click="translate">翻译</button>
+			     
+			     <ul class="dropdown-menu">
+			       <li v-for="lang in langs">
+			   		 <a href="#" @click="getLangCode(lang)">{{'中文 =='+ lang.langName }}</a>
+					</li>
+			     </ul>
+			   </div>
+			 </div>
+		 </div>
+		 
+		 <!-- 主体部分-->
+		 <div class="row">
+		 	<div class="col-md-6 myMd">
+				<div class="form-group">
+					<textarea v-model="trans.query" class="form-control" style="height: 150px; resize: none;" rows="7" placeholder="请输入你要翻译的文字或网址"></textarea>
+				</div>
+				
+				
+		 	</div>
+			<div class="col-md-6 myMd">
+				<div v-text="text" class="form-control" style="height: 150px;">
+					
+				</div>
+			</div>
+		 </div>
+	</div>
+
+
+<script src="js/vue.js"></script>
+<script src="js/axios.min.js"></script>
+
+
+<script>
+	let vue = new Vue({
+		el:'#app',
+		data:{
+			/* 翻译处理
+			 query: 被翻译的内容
+			 from：语言本来类型
+			 to: 要翻译的类型
+			 
+			 */
+			trans:{
+				query: '',
+				from: 'auto',
+				to:'en'
+			},
+			/*  */
+			text: '',
+			btn_group: '中文 == 英语',
+			langs:[],
+			textVal: 0
+		}
+		,
+		methods:{
+			/* 获取翻译内容 */
+			translate(){
+				if(this.trans.query == null || this.trans.query === ''){
+					alert('请输入翻译内容')
+				}else{
+					axios.post('http://localhost:8080/trans',this.trans)
+					.then(response=>{
+						this.text = response.data.data.trans_result[0].dst
+					})
+					.catch(error=>{
+						alert('发生未知错误！'+error )
+						this.text=''
+					})
+				}
+			},
+			/* 页面加载时，获取数据库内容 */
+			getLang(){
+				const _this = this
+				axios.get('http://localhost:8080/lang/all')
+				.then(
+					res=>{
+						//赋值
+						this.langs = res.data.data
+					}
+				).catch(
+					error=>{
+						console.log('发生未知错误！'+error)
+						this.text=''
+					}
+				)
+			},
+			/* 获取下拉框信息 */
+			getLangCode(code){
+				this.btn_group = '中文 ==' + code.langName
+				this.trans.to = code.langCode
+			}
+		},
+		created() {
+			this.getLang()
+		}
+	})
+</script>
+
+</body>
+<!-- jQuery 1.12.4 依赖 -->
+<script type="text/javascript" src="bootstrap3/jquery.min.js"></script>
+<!-- Bootstrap核心js -->
+<script type="text/javascript" src="bootstrap3/js/bootstrap.js"></script>
+<!-- 图片占位，解决低版本IE不支持圆角的问题-->
+<script type="text/javascript" src="bootstrap3/js/holder.js"></script>
+<!-- 引入T5和C3的js函数库，支持旧版浏览器-->
+<script type="text/javascript" src="bootstrap3/js/html5shiv.min.js"></script>
+<script type="text/javascript" src="bootstrap3/js/css3-mediaqueries.js"></script>
+<script type="text/javascript" src="bootstrap3/js/respond.min.js"></script>
+</html>
